@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.9"
+# dependencies = ["pyyaml"]
+# ///
 """
 vault_sync.py — wrapper around `unison <profile> -batch -dumbtty` for an Obsidian
 vault kept in two copies (a Linux/WSL copy and a Windows/NTFS copy).

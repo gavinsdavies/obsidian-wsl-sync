@@ -25,6 +25,8 @@
 #   VAULT_SYNC_POLL         seconds; Windows->Linux cadence (default: 15)
 #   VAULT_SYNC_DEBOUNCE     seconds of quiet after a change before syncing (default: 2)
 #   VAULT_SYNC_MAXPATHS     burst size above which it full-syncs (default: 25)
+#   UNISON_PRF              profile file (default: ~/.unison/<UNISON_PROFILE>.prf)
+#   VAULT_SYNC_NOWATCH      extra space-separated relative paths not to watch
 set -u
 
 CONFIG="${VAULT_SYNC_ENV:-${XDG_CONFIG_HOME:-$HOME/.config}/vault-sync/vault-sync.env}"
@@ -44,10 +46,25 @@ DEBOUNCE="${VAULT_SYNC_DEBOUNCE:-2}"
 MAXPATHS="${VAULT_SYNC_MAXPATHS:-25}"
 STATUS="${VAULT_SYNC_STATUS_FILE:-}"
 STATUS_HEARTBEAT=60           # re-stamp a steady "synced" badge at most this often
+PRF="${UNISON_PRF:-$HOME/.unison/$PROFILE.prf}"
 
 command -v inotifywait >/dev/null || { echo "inotifywait not found — install inotify-tools" >&2; exit 1; }
 command -v unison      >/dev/null || { echo "unison not found" >&2; exit 1; }
 mkdir -p "$(dirname "$LOCK")"
+
+# Paths inotifywait should not watch. Taken from the Unison profile's
+# `ignore = Path`/`BelowPath` lines so the watch set never drifts from what
+# Unison itself skips, plus anything in $VAULT_SYNC_NOWATCH.
+nowatch=()
+_nowatch_add() { [ -n "$1" ] && [ -e "$LOCAL/$1" ] && nowatch+=( @"$LOCAL/$1" ); }
+if [ -f "$PRF" ]; then
+    while IFS= read -r p; do _nowatch_add "$p"; done < <(
+        sed -n 's/^[[:space:]]*ignore[[:space:]]*=[[:space:]]*\(Path\|BelowPath\)[[:space:]]*//p' "$PRF"
+    )
+else
+    for p in .git .obsidian/workspace.json .obsidian/cache .trash; do _nowatch_add "$p"; done
+fi
+for p in ${VAULT_SYNC_NOWATCH:-}; do _nowatch_add "$p"; done
 
 # Editor/OS scratch noise, plus the status/history files if they live in the tree.
 EXCLUDE='(/\.obsidian/workspace(-mobile)?\.json$|/\.obsidian/cache/|/4913$|/~\$|\.sw[px]$|\.tmp$|\.goutputstream|/\.unison)'
@@ -111,11 +128,7 @@ trap cleanup EXIT
 inotifywait -m -r -q \
     -e close_write -e create -e delete -e move \
     --exclude "$EXCLUDE" \
-    @"$LOCAL/.git" \
-    @"$LOCAL/.obsidian/plugins" \
-    @"$LOCAL/.obsidian/icons" \
-    @"$LOCAL/.obsidian/themes" \
-    @"$LOCAL/.trash" \
+    ${nowatch[@]+"${nowatch[@]}"} \
     --format '%w%f' "$LOCAL" > "$FIFO" 2>/dev/null &
 IW=$!
 exec 3<"$FIFO"

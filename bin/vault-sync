@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-# Load config, then run vault_sync.py with the configured Python interpreter.
+# Load config, then run vault_sync.py.
+#
+# Interpreter selection, in order:
+#   1. $VAULT_SYNC_PYTHON (a Python with PyYAML importable)
+#   2. `uv run` if uv is installed (reads the PEP 723 header, no venv needed)
+#   3. python3 on PATH (PyYAML must already be importable)
 set -eu
 
 CONFIG="${VAULT_SYNC_ENV:-${XDG_CONFIG_HOME:-$HOME/.config}/vault-sync/vault-sync.env}"
@@ -12,6 +17,12 @@ fi
 
 real="$(readlink -f "${BASH_SOURCE[0]}")"
 root="$(cd "$(dirname "$real")/.." && pwd)"
-pybin="${VAULT_SYNC_PYTHON:-python3}"
+script="$root/vault_sync.py"
 
-exec "$pybin" "$root/vault_sync.py" "$@"
+if [ -n "${VAULT_SYNC_PYTHON:-}" ]; then
+    exec "$VAULT_SYNC_PYTHON" "$script" "$@"
+elif command -v uv >/dev/null 2>&1; then
+    exec uv run --quiet "$script" "$@"
+else
+    exec python3 "$script" "$@"
+fi

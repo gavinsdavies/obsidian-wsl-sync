@@ -14,9 +14,15 @@ command -v unison >/dev/null || { echo "error: unison not found — install it f
 command -v inotifywait >/dev/null || echo "warning: inotifywait not found — the watch daemon needs inotify-tools"
 command -v flock >/dev/null || { echo "error: flock not found (util-linux)"; exit 1; }
 
-echo "venv        -> $venv"
-python3 -m venv "$venv"
-"$venv/bin/pip" -q install -r "$here/requirements.txt"
+use_uv=""
+if command -v uv >/dev/null; then
+    use_uv=1
+    echo "python      -> uv (no venv; vault-sync runs 'uv run', PyYAML from the PEP 723 header)"
+else
+    echo "venv        -> $venv"
+    python3 -m venv "$venv"
+    "$venv/bin/pip" -q install -r "$here/requirements.txt"
+fi
 
 echo "symlinks    -> $bindir"
 mkdir -p "$bindir"
@@ -29,6 +35,9 @@ if [ -f "$confdir/vault-sync.env" ]; then
     echo "config      -> $confdir/vault-sync.env (kept; not overwritten)"
 else
     cp "$here/examples/vault-sync.env.example" "$confdir/vault-sync.env"
+    if [ -z "$use_uv" ]; then
+        printf '\nVAULT_SYNC_PYTHON="%s/bin/python"\n' "$venv" >> "$confdir/vault-sync.env"
+    fi
     echo "config      -> $confdir/vault-sync.env (created — edit before starting)"
 fi
 

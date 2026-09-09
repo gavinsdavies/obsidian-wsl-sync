@@ -50,6 +50,9 @@ Linux/WSL copy  <--(full `unison` on a 15s idle poll)-----  Windows/NTFS copy
   run `unison` at the same time. It mops up any frontmatter conflicts the raw
   daemon skipped and writes one audit line.
 - With ~2s propagation, frontmatter conflicts are rare, so hourly is enough.
+- The daemon reads the profile's `ignore = Path` / `BelowPath` lines and tells
+  `inotifywait` not to watch those subtrees, so the watch set and the sync set
+  stay in step. `VAULT_SYNC_NOWATCH` adds more.
 
 ## Requirements
 
@@ -57,7 +60,9 @@ Linux/WSL copy  <--(full `unison` on a 15s idle poll)-----  Windows/NTFS copy
 - Unison 2.53+ on `PATH`, same version on both roots
 - `inotify-tools` (for `inotifywait`)
 - `flock` (util-linux)
-- Python 3.9+ with PyYAML (the installer makes a venv)
+- Python 3.9+. With [uv](https://docs.astral.sh/uv/) installed the wrapper runs
+  `uv run` and needs nothing else (PyYAML comes from the script's PEP 723
+  header). Without uv, `install.sh` builds a small venv.
 
 `unison-fsmonitor` (which would give `unison -repeat watch`) is not packaged for
 2.53 on current Ubuntu, which is why this uses `inotifywait` directly.
@@ -70,9 +75,14 @@ cd ~/github/obsidian-wsl-sync
 ./install.sh
 ```
 
-`install.sh` creates a venv, symlinks `vault-sync` and `vault-sync-watch` into
-`~/.local/bin`, drops a config file at `~/.config/vault-sync/vault-sync.env`,
-and copies the systemd `--user` units. It does not start anything.
+`install.sh` symlinks `vault-sync` and `vault-sync-watch` into `~/.local/bin`,
+drops a config file at `~/.config/vault-sync/vault-sync.env`, and copies the
+systemd `--user` units. If `uv` is not installed it also builds a venv for
+PyYAML. It does not start anything.
+
+To pick up later changes: `git pull` in the clone and
+`systemctl --user restart vault-sync-watch.service` — the `~/.local/bin`
+symlinks point straight at the repo.
 
 Then:
 
