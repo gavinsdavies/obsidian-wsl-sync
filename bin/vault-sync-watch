@@ -22,7 +22,7 @@
 #   UNISON_PROFILE          profile name (default: vault)
 #   VAULT_SYNC_LOCK         lock path (default: ~/.unison/vault-sync.lock)
 #   VAULT_SYNC_STATUS_FILE  status-callout file for an Obsidian embed (default: off)
-#   VAULT_SYNC_POLL         seconds; Windows->Linux cadence (default: 15)
+#   VAULT_SYNC_POLL         seconds; Windows->Linux cadence (default: 30)
 #   VAULT_SYNC_DEBOUNCE     seconds of quiet after a change before syncing (default: 2)
 #   VAULT_SYNC_MAXPATHS     burst size above which it full-syncs (default: 25)
 #   UNISON_PRF              profile file (default: ~/.unison/<UNISON_PROFILE>.prf)
@@ -41,7 +41,7 @@ fi
 LOCAL="${LOCAL_VAULT%/}"
 PROFILE="${UNISON_PROFILE:-vault}"
 LOCK="${VAULT_SYNC_LOCK:-$HOME/.unison/vault-sync.lock}"
-POLL="${VAULT_SYNC_POLL:-15}"
+POLL="${VAULT_SYNC_POLL:-30}"
 DEBOUNCE="${VAULT_SYNC_DEBOUNCE:-2}"
 MAXPATHS="${VAULT_SYNC_MAXPATHS:-25}"
 STATUS="${VAULT_SYNC_STATUS_FILE:-}"
