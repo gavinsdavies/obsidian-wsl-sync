@@ -1,0 +1,42 @@
+# Example Unison profile for obsidian-wsl-sync.
+#
+# Save as ~/.unison/vault.prf (the name must match UNISON_PROFILE in
+# vault-sync.env). Edit the two roots and the backup/log paths.
+
+# Root 1: the Linux/WSL copy on a native filesystem.
+root = /home/YOU/vaults/MyVault
+# Root 2: the Windows copy, reached over the 9p bridge.
+root = /mnt/c/Users/YOU/Documents/MyVault
+
+# Never sync the git directory — its object files are filesystem-specific.
+ignore = Path .git
+
+# Obsidian session state and caches that change on nearly every keystroke.
+ignore = Path .obsidian/workspace.json
+ignore = Path .obsidian/workspace-mobile.json
+ignore = Path .obsidian/cache
+ignore = Path .trash
+
+# Optional: skip plugin binaries, themes and icon packs and manage them from
+# the Obsidian GUI instead.
+ignore = Path .obsidian/plugins
+ignore = Path .obsidian/themes
+ignore = Path .obsidian/icons
+
+# Timestamps and permissions do not translate between NTFS and ext4.
+times = false
+perms = 0
+
+# Compare size + mtime instead of full checksums. Much faster over 9p.
+fastcheck = true
+
+# Keep a few previous versions outside the vault — a safety net for the
+# wrapper's auto-resolution.
+backup = Name *
+backuploc = central
+backupdir = /home/YOU/.unison/backups/vault
+backupcurrent = Name *
+maxbackups = 5
+
+# A named log the wrapper parses.
+logfile = /home/YOU/.unison/vault.log

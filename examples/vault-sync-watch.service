@@ -1,0 +1,17 @@
+[Unit]
+Description=Continuous low-latency Obsidian vault sync (inotify + scoped unison)
+Documentation=https://github.com/gavinsdavies/obsidian-wsl-sync
+After=default.target
+
+[Service]
+Type=simple
+# Config is read from ~/.config/vault-sync/vault-sync.env by the script.
+ExecStart=%h/.local/bin/vault-sync-watch
+Restart=always
+RestartSec=15
+StandardOutput=null
+StandardError=journal
+Nice=10
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,13 @@
+[Unit]
+Description=Obsidian vault sync sweep (frontmatter-conflict auto-resolve + audit)
+Documentation=https://github.com/gavinsdavies/obsidian-wsl-sync
+After=default.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/flock %h/.unison/vault-sync.lock %h/.local/bin/vault-sync
+# vault-sync exits 1 when body-diff conflicts remain for manual review.
+# That is an expected outcome, not a service failure.
+SuccessExitStatus=0 1
+TimeoutStartSec=600
+Nice=10

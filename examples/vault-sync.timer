@@ -1,0 +1,11 @@
+[Unit]
+Description=Hourly Obsidian vault sync sweep
+
+[Timer]
+OnStartupSec=5min
+OnUnitActiveSec=1h
+Persistent=true
+AccuracySec=5min
+
+[Install]
+WantedBy=timers.target

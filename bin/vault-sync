@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Load config, then run vault_sync.py with the configured Python interpreter.
+set -eu
+
+CONFIG="${VAULT_SYNC_ENV:-${XDG_CONFIG_HOME:-$HOME/.config}/vault-sync/vault-sync.env}"
+if [ -f "$CONFIG" ]; then
+    set -a
+    # shellcheck disable=SC1090
+    . "$CONFIG"
+    set +a
+fi
+
+real="$(readlink -f "${BASH_SOURCE[0]}")"
+root="$(cd "$(dirname "$real")/.." && pwd)"
+pybin="${VAULT_SYNC_PYTHON:-python3}"
+
+exec "$pybin" "$root/vault_sync.py" "$@"
