@@ -122,10 +122,18 @@ Set `VAULT_SYNC_STATUS_FILE` and the daemon writes a callout to that file:
 ```
 
 `[!warning]` while starting or when a sync needs review, `[!failure]` if the
-watcher dies. Embed it in an Obsidian note with `![[.sync-status]]` for a
-green check that shows the sync is alive. The file is excluded from the watch
-(so writing it does not trigger a sync) and reaches the Windows side on the
-next poll, so its timestamp there can lag 15–30s.
+watcher dies. The file is excluded from the watch, so writing it does not
+trigger a sync.
+
+The status file is **per-machine state** — it reflects only the side running
+the daemon. Keep `VAULT_SYNC_STATUS_FILE` outside the synced tree (e.g.
+`$HOME/.cache/vault-sync-status.md`). If you want it embedded in an Obsidian
+note with `![[.sync-status]]`, point the variable inside the vault **and** add
+a matching `ignore = Path` line to the Unison profile: otherwise the two copies
+land in a permanent conflict, because the far side's Obsidian re-stamps the
+file's frontmatter the moment Unison writes it. Once it is ignored, the far
+side's copy no longer updates — check sync health there with `git status` or
+the history-file audit line instead.
 
 ## Checking it is running
 

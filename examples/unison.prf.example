@@ -17,6 +17,15 @@ ignore = Path .obsidian/workspace-mobile.json
 ignore = Path .obsidian/cache
 ignore = Path .trash
 
+# If VAULT_SYNC_STATUS_FILE / VAULT_SYNC_HISTORY_FILE live inside the vault,
+# ignore them here too. They are per-machine transient state the daemon
+# rewrites on every sync; syncing the status file in particular produces a
+# permanent conflict, because the far side's Obsidian re-stamps its frontmatter
+# the instant Unison writes it and the two copies never converge. Prefer
+# pointing those variables at a path outside the synced tree.
+ignore = Path .sync-status.md
+ignore = Path .vault-sync-history.md
+
 # Optional: skip plugin binaries, themes and icon packs and manage them from
 # the Obsidian GUI instead.
 ignore = Path .obsidian/plugins
